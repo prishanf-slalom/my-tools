@@ -379,7 +379,7 @@
                   <div
                     class="flex justify-between items-center p-3 bg-purple-50 rounded"
                   >
-                    <span class="text-gray-700">% of Allocation</span>
+                    <span class="text-gray-700">% of Annual Allocation</span>
                     <span
                       id="percent1"
                       class="text-xl font-bold text-purple-600"
@@ -736,7 +736,7 @@
                   <div
                     class="flex justify-between items-center p-3 bg-purple-50 rounded"
                   >
-                    <span class="text-gray-700">% of Allocation</span>
+                    <span class="text-gray-700">% of Annual Allocation</span>
                     <span
                       id="percent2"
                       class="text-xl font-bold text-purple-600"
@@ -2164,30 +2164,35 @@
                   label: "SF Object Ingestion",
                   value: costs.ingestion,
                   calculation: costs.ingestionCalc || "FREE - Batch mode from SF orgs",
+                  rate: `Batch: FREE`,
                   color: "blue",
                 },
                 {
                   label: "Identity Resolution",
                   value: costs.identityResolution,
                   calculation: costs.identityCalc || "",
+                  rate: `${dscRates.batch.identity} DSC per profile (100,000 per 1M rows)`,
                   color: "green",
                 },
                 {
                   label: "Output to Snowflake",
                   value: costs.snowflakeOutput,
                   calculation: costs.outputCalc || "",
+                  rate: `${dscRates.batch.output} DSC per 1,000 records (Data Federation: 70 per 1M rows)`,
                   color: "orange",
                 },
                 {
                   label: "Companion Org Sync",
                   value: costs.companionSync,
                   calculation: costs.companionCalc || "",
+                  rate: `${dscRates.batch.companion} DSC per 1,000 records per day (70 per 1M rows)`,
                   color: "purple",
                 },
                 {
                   label: "Calculated Insights",
                   value: costs.calculatedInsights,
                   calculation: costs.insightsCalc || "",
+                  rate: `${dscRates.insights} DSC per 1,000 insights (Batch: 15 per 1M rows)`,
                   color: "pink",
                 },
               ]
@@ -2196,12 +2201,14 @@
                   label: "Data Federation (Zero-Copy)",
                   value: costs.zeroCopy,
                   calculation: costs.zeroCopyCalc || "",
+                  rate: `${dscRates.zeroCopyQueryRate} DSC per 1,000 queries (70 per 1M rows)`,
                   color: "blue",
                 },
                 {
                   label: "Companion Org Sync",
                   value: costs.companionSync,
                   calculation: costs.companionCalc || "",
+                  rate: `${dscRates.batch.companion} DSC per 1,000 records per day (70 per 1M rows)`,
                   color: "purple",
                 },
               ];
@@ -2226,6 +2233,9 @@
                             <div class="text-xs text-gray-500">Annual DSC</div>
                             <div class="text-base font-bold text-gray-900">${formatNumber(annual)}</div>
                         </div>
+                    </div>
+                    <div class="text-xs text-blue-700 bg-blue-50 p-2 rounded border border-blue-100 mb-2">
+                        <div class="font-semibold">📊 Rate: ${comp.rate}</div>
                     </div>
                     <div class="text-xs text-gray-600 bg-white p-2 rounded border border-gray-100" style="line-height: 1.6;">
                         <div class="font-semibold mb-1">Calculation:</div>
