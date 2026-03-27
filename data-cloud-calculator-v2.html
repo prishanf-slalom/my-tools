@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Data Cloud Cost Calculator</title>
+    <title>Data Cloud Cost Calculator v2 - Brookfield Scenarios</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -83,6 +83,12 @@
         background-color: #f3f4f6;
         cursor: not-allowed;
       }
+      .mode-select {
+        padding: 0.25rem 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+      }
     </style>
   </head>
   <body class="bg-gray-50 min-h-screen">
@@ -91,20 +97,37 @@
       <div
         class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-lg shadow-xl p-8 mb-8 text-white"
       >
-        <h1 class="text-4xl font-bold mb-2">
-          Data Cloud Architecture Calculator
-        </h1>
-        <p class="text-blue-100 text-lg mb-4">
-          DSC Consumption Analysis
-        </p>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <div class="bg-blue-700 bg-opacity-50 px-4 py-3 rounded-lg">
-            <div class="text-blue-200 text-xs mb-1">Total DSC Allocation</div>
-            <div class="text-2xl font-bold">136.25M</div>
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <h1 class="text-4xl font-bold mb-2">
+              Data Cloud Architecture Calculator v2
+            </h1>
+            <p class="text-blue-100 text-lg mb-4">
+              Brookfield Asset Management - DSC Consumption Analysis
+            </p>
           </div>
+          <div class="bg-blue-700 bg-opacity-50 px-6 py-4 rounded-lg">
+            <div class="text-blue-200 text-xs mb-2">Total DSC Allocation</div>
+            <input
+              type="number"
+              id="totalDSCAllocation"
+              value="136250000"
+              onchange="updateDSCAllocation()"
+              class="w-40 px-3 py-2 text-2xl font-bold text-gray-900 rounded border-2 border-blue-400 focus:ring-2 focus:ring-blue-300"
+            />
+            <div class="text-blue-200 text-xs mt-1">DSC Credits</div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div class="bg-blue-700 bg-opacity-50 px-4 py-3 rounded-lg">
             <div class="text-blue-200 text-xs mb-1">Salesforce Orgs</div>
             <div class="text-2xl font-bold">3 Orgs</div>
+            <div class="text-xs text-blue-200">GCG, Private Wealth, PSG</div>
+          </div>
+          <div class="bg-blue-700 bg-opacity-50 px-4 py-3 rounded-lg">
+            <div class="text-blue-200 text-xs mb-1">Processing Mode</div>
+            <div class="text-2xl font-bold">Configurable per Object</div>
+            <div class="text-xs text-blue-200">Batch (6hr) or Real-time</div>
           </div>
         </div>
       </div>
@@ -132,6 +155,12 @@
               📊 Comparison
             </button>
             <button
+              onclick="switchTab('projection')"
+              class="tab-button px-6 py-4 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 hover:border-gray-300"
+            >
+              📈 5-Year Projection
+            </button>
+            <button
               onclick="switchTab('rates')"
               class="tab-button px-6 py-4 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 hover:border-gray-300"
             >
@@ -150,129 +179,6 @@
               Salesforce Orgs connect to Data Cloud, unify key objects, then
               push both unified and raw data to Snowflake for reporting.
             </p>
-
-            <!-- Data Flow Diagram -->
-            <div
-              class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 mb-6"
-            >
-              <h3 class="text-lg font-semibold text-gray-700 mb-4 text-center">
-                Data Flow
-              </h3>
-
-              <!-- Main flow row -->
-              <div class="flex items-center gap-3 flex-wrap justify-center">
-                <!-- Left: 3 SF Orgs -->
-                <div class="flex flex-col space-y-3">
-                  <div class="flow-box bg-green-100 border-2 border-green-300">
-                    <div class="font-bold text-green-800">SF Org 1</div>
-                    <div class="text-xs text-green-600 mt-1">
-                      Accounts, Contacts, Opps
-                    </div>
-                  </div>
-                  <div class="flow-box bg-green-100 border-2 border-green-300">
-                    <div class="font-bold text-green-800">SF Org 2</div>
-                    <div class="text-xs text-green-600 mt-1">
-                      Accounts, Contacts
-                    </div>
-                  </div>
-                  <div class="flow-box bg-green-100 border-2 border-green-300">
-                    <div class="font-bold text-green-800">SF Org 3</div>
-                    <div class="text-xs text-green-600 mt-1">
-                      Accounts, Contacts
-                    </div>
-                  </div>
-                </div>
-
-                <div class="flow-arrow">→</div>
-
-                <!-- Center: Data Cloud -->
-                <div class="flow-box bg-blue-100 border-2 border-blue-400">
-                  <div class="font-bold text-blue-800">Data Cloud</div>
-                  <div class="text-xs text-blue-600 mt-1">
-                    Unification Engine
-                  </div>
-                  <div class="metric-badge bg-blue-200 text-blue-800 mt-2">
-                    DSC Consumed
-                  </div>
-                  <div class="metric-badge bg-indigo-200 text-indigo-800 mt-1">
-                    Data Actions
-                  </div>
-                  <div class="metric-badge bg-pink-200 text-pink-800 mt-1">
-                    Activation
-                  </div>
-                </div>
-
-                <div class="flow-arrow">→</div>
-
-                <!-- Right: 3 output paths stacked -->
-                <div class="flex flex-col gap-3">
-                  <!-- Path 1: Snowflake -->
-                  <div
-                    class="flow-box bg-purple-100 border-2 border-purple-300"
-                  >
-                    <div class="font-bold text-purple-800">Snowflake</div>
-                    <div class="text-xs text-purple-600 mt-1">
-                      Reporting & Analytics
-                    </div>
-                    <div
-                      class="metric-badge bg-purple-200 text-purple-800 mt-2 text-xs"
-                    >
-                      Passive / Query
-                    </div>
-                  </div>
-
-                  <!-- Path 2: Activation Targets -->
-                  <div class="flow-box bg-pink-100 border-2 border-pink-300">
-                    <div class="font-bold text-pink-800">
-                      Activation Targets
-                    </div>
-                    <div class="text-xs text-pink-600 mt-1">
-                      Mktg Cloud, Google, Meta
-                    </div>
-                    <div
-                      class="metric-badge bg-pink-200 text-pink-800 mt-2 text-xs"
-                    >
-                      Segment Push
-                    </div>
-                  </div>
-
-                  <!-- Path 3: Data Actions back to SF Orgs -->
-                  <div
-                    class="flow-box bg-green-100 border-2 border-green-300 border-dashed"
-                  >
-                    <div class="font-bold text-green-800">SF Orgs</div>
-                    <div class="text-xs text-green-600 mt-1">
-                      Cross-Org Record Sync
-                    </div>
-                    <div
-                      class="metric-badge bg-yellow-200 text-yellow-800 mt-2 text-xs"
-                    >
-                      ↩ Data Action Triggered
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Legend -->
-              <div
-                class="flex flex-wrap gap-4 mt-5 justify-center text-xs text-gray-500"
-              >
-                <div class="flex items-center gap-1">
-                  <div class="w-6 border-t-2 border-purple-400"></div>
-                  <span>Snowflake — unified data for reporting</span>
-                </div>
-                <div class="flex items-center gap-1">
-                  <div class="w-6 border-t-2 border-pink-400"></div>
-                  <span>Activation — segment push to channels</span>
-                </div>
-                <div class="flex items-center gap-1">
-                  <div
-                    class="w-6 border-t-2 border-dashed border-yellow-500"
-                  ></div>
-                  <span>Data Actions — event-driven cross-org sync</span>
-                </div>
-              </div>
-            </div>
 
             <!-- Object Configuration -->
             <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
@@ -323,12 +229,22 @@
                       <th
                         class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase"
                       >
+                        Processing Mode
+                      </th>
+                      <th
+                        class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase"
+                      >
                         Unify?
                       </th>
                       <th
                         class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase"
                       >
                         Push to SF?
+                      </th>
+                      <th
+                        class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Monthly Storage
                       </th>
                       <th
                         class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase"
@@ -386,136 +302,20 @@
                       >0%</span
                     >
                   </div>
+                  <div
+                    class="flex justify-between items-center p-3 bg-orange-50 rounded"
+                  >
+                    <span class="text-gray-700">Total Storage DSC/mo</span>
+                    <span
+                      id="storage1"
+                      class="text-xl font-bold text-orange-600"
+                      >0</span
+                    >
+                  </div>
                   <div class="pt-4 border-t">
                     <canvas id="chart1" height="200"></canvas>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <!-- Pros & Cons -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div class="bg-green-50 border border-green-200 rounded-lg p-6">
-                <h3
-                  class="text-lg font-semibold text-green-800 mb-4 flex items-center"
-                >
-                  <svg
-                    class="w-6 h-6 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    ></path>
-                  </svg>
-                  Pros
-                </h3>
-                <ul class="space-y-2 text-sm text-green-700">
-                  <li class="flex items-start">
-                    <span class="mr-2">✓</span>
-                    <span
-                      ><strong>Native Salesforce unification</strong> -
-                      ML-powered identity resolution included</span
-                    >
-                  </li>
-                  <li class="flex items-start">
-                    <span class="mr-2">✓</span>
-                    <span
-                      ><strong>Unified profiles available in SF UI</strong> -
-                      Relationship managers see 360° view</span
-                    >
-                  </li>
-                  <li class="flex items-start">
-                    <span class="mr-2">✓</span>
-                    <span
-                      ><strong>Batch ingestion is FREE</strong> - No DSC cost
-                      for SF org ingestion (every 6 hours)</span
-                    >
-                  </li>
-                  <li class="flex items-start">
-                    <span class="mr-2">✓</span>
-                    <span
-                      ><strong>Multi-org sync built-in</strong> - Data Cloud One
-                      companion orgs included</span
-                    >
-                  </li>
-                  <li class="flex items-start">
-                    <span class="mr-2">✓</span>
-                    <span
-                      ><strong>Faster implementation</strong> - 8-12 weeks vs 6+
-                      months for custom Snowflake solution</span
-                    >
-                  </li>
-                  <li class="flex items-start">
-                    <span class="mr-2">✓</span>
-                    <span
-                      ><strong>No custom code maintenance</strong> - Salesforce
-                      manages deduplication logic</span
-                    >
-                  </li>
-                </ul>
-              </div>
-
-              <div class="bg-red-50 border border-red-200 rounded-lg p-6">
-                <h3
-                  class="text-lg font-semibold text-red-800 mb-4 flex items-center"
-                >
-                  <svg
-                    class="w-6 h-6 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M6 18L18 6M6 6l12 12"
-                    ></path>
-                  </svg>
-                  Cons
-                </h3>
-                <ul class="space-y-2 text-sm text-red-700">
-                  <li class="flex items-start">
-                    <span class="mr-2">✗</span>
-                    <span
-                      ><strong>Companion org sync is expensive</strong> -
-                      Largest DSC cost component (46% of total)</span
-                    >
-                  </li>
-                  <li class="flex items-start">
-                    <span class="mr-2">✗</span>
-                    <span
-                      ><strong>Output to Snowflake costs DSC</strong> - Every
-                      sync consumes credits (though batch is cheap)</span
-                    >
-                  </li>
-                  <li class="flex items-start">
-                    <span class="mr-2">✗</span>
-                    <span
-                      ><strong>Profile updates consume DSC</strong> - Real-time
-                      mode very expensive (use batch!)</span
-                    >
-                  </li>
-                  <li class="flex items-start">
-                    <span class="mr-2">✗</span>
-                    <span
-                      ><strong>Limited transformation in Data Cloud</strong> -
-                      Complex calculations better in Snowflake</span
-                    >
-                  </li>
-                  <li class="flex items-start">
-                    <span class="mr-2">✗</span>
-                    <span
-                      ><strong>Data latency</strong> - 6-hour delay in batch
-                      mode (vs real-time in Snowflake)</span
-                    >
-                  </li>
-                </ul>
               </div>
             </div>
           </div>
@@ -532,109 +332,6 @@
               Cloud consumes via zero-copy and pushes unified data back to SF
               orgs.
             </p>
-
-            <!-- Data Flow Diagram -->
-            <div
-              class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-6 mb-6"
-            >
-              <h3 class="text-lg font-semibold text-gray-700 mb-4 text-center">
-                Data Flow
-              </h3>
-
-              <div class="data-flow">
-                <div class="flow-box bg-green-100 border-2 border-green-300">
-                  <div class="font-bold text-green-800">3 SF Orgs</div>
-                  <div class="text-xs text-green-600 mt-1">All Objects</div>
-                </div>
-                <div class="flow-arrow">→</div>
-                <div class="flow-box bg-orange-100 border-2 border-orange-300">
-                  <div class="font-bold text-orange-800">Workato</div>
-                  <div class="text-xs text-orange-600 mt-1">ETL Pipeline</div>
-                </div>
-                <div class="flow-arrow">→</div>
-                <div class="flow-box bg-purple-100 border-2 border-purple-400">
-                  <div class="font-bold text-purple-800">Snowflake</div>
-                  <div class="text-xs text-purple-600 mt-1">
-                    Unification + Analytics
-                  </div>
-                </div>
-                <div class="flow-arrow">→</div>
-                <div class="flow-box bg-blue-100 border-2 border-blue-300">
-                  <div class="font-bold text-blue-800">Data Cloud</div>
-                  <div class="text-xs text-blue-600 mt-1">Zero-Copy Read</div>
-                  <div class="flex flex-col">
-                    <div class="metric-badge bg-blue-200 text-blue-800 mt-2">
-                      DSC Consumed
-                    </div>
-                    <div
-                      class="metric-badge bg-indigo-200 text-indigo-800 mt-1"
-                    >
-                      Data Actions
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Split arrow -->
-                <div class="flow-arrow">→</div>
-
-                <!-- Two return paths stacked -->
-                <div class="flex flex-col gap-3">
-                  <!-- Path 1: DSC Read -->
-                  <div class="flex items-center gap-2">
-                    <div
-                      class="flow-box bg-green-100 border-2 border-green-300"
-                      style="min-width: 130px"
-                    >
-                      <div class="font-bold text-green-800 text-sm">
-                        SF Orgs
-                      </div>
-                      <div class="text-xs text-green-600 mt-1">
-                        Customer 360 View
-                      </div>
-                      <div
-                        class="metric-badge bg-green-200 text-green-800 mt-2 text-xs"
-                      >
-                        DSC Read (Passive)
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Path 2: Data Actions -->
-                  <div class="flex items-center gap-2">
-                    <div
-                      class="flow-box bg-green-100 border-2 border-green-300 border-dashed"
-                      style="min-width: 130px"
-                    >
-                      <div class="font-bold text-green-800 text-sm">
-                        SF Orgs
-                      </div>
-                      <div class="text-xs text-green-600 mt-1">
-                        Cross-Org Opp Sync
-                      </div>
-                      <div
-                        class="metric-badge bg-yellow-200 text-yellow-800 mt-2 text-xs"
-                      >
-                        Data Action (Triggered)
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Legend -->
-              <div class="flex gap-6 mt-4 justify-center text-xs text-gray-500">
-                <div class="flex items-center gap-1">
-                  <div class="w-6 border-t-2 border-green-400"></div>
-                  <span>DSC — passive read (user queries)</span>
-                </div>
-                <div class="flex items-center gap-1">
-                  <div
-                    class="w-6 border-t-2 border-dashed border-yellow-500"
-                  ></div>
-                  <span>Data Action — event-driven trigger</span>
-                </div>
-              </div>
-            </div>
 
             <!-- Object Configuration -->
             <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
@@ -686,6 +383,11 @@
                         class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase"
                       >
                         Push to SF?
+                      </th>
+                      <th
+                        class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Monthly Storage
                       </th>
                       <th
                         class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase"
@@ -743,150 +445,20 @@
                       >0%</span
                     >
                   </div>
+                  <div
+                    class="flex justify-between items-center p-3 bg-orange-50 rounded"
+                  >
+                    <span class="text-gray-700">Total Storage DSC/mo</span>
+                    <span
+                      id="storage2"
+                      class="text-xl font-bold text-orange-600"
+                      >0</span
+                    >
+                  </div>
                   <div class="pt-4 border-t">
                     <canvas id="chart2" height="200"></canvas>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <!-- Pros & Cons -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div class="bg-green-50 border border-green-200 rounded-lg p-6">
-                <h3
-                  class="text-lg font-semibold text-green-800 mb-4 flex items-center"
-                >
-                  <svg
-                    class="w-6 h-6 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    ></path>
-                  </svg>
-                  Pros
-                </h3>
-                <ul class="space-y-2 text-sm text-green-700">
-                  <li class="flex items-start">
-                    <span class="mr-2">✓</span>
-                    <span
-                      ><strong>Lower DSC consumption</strong> - No ingestion or
-                      unification costs (done in Snowflake)</span
-                    >
-                  </li>
-                  <li class="flex items-start">
-                    <span class="mr-2">✓</span>
-                    <span
-                      ><strong>Snowflake-native transformations</strong> - Full
-                      SQL/dbt power for complex calculations</span
-                    >
-                  </li>
-                  <li class="flex items-start">
-                    <span class="mr-2">✓</span>
-                    <span
-                      ><strong>Zero-copy is fast</strong> - No data movement,
-                      query directly from Snowflake</span
-                    >
-                  </li>
-                  <li class="flex items-start">
-                    <span class="mr-2">✓</span>
-                    <span
-                      ><strong>Real-time analytics</strong> - Snowflake queries
-                      have no lag (vs 6hr batch in DC)</span
-                    >
-                  </li>
-                  <li class="flex items-start">
-                    <span class="mr-2">✓</span>
-                    <span
-                      ><strong>Existing Workato investment</strong> - Leverage
-                      current integration platform</span
-                    >
-                  </li>
-                  <li class="flex items-start">
-                    <span class="mr-2">✓</span>
-                    <span
-                      ><strong>Flexible deduplication logic</strong> - Full
-                      control over matching rules in SQL</span
-                    >
-                  </li>
-                </ul>
-              </div>
-
-              <div class="bg-red-50 border border-red-200 rounded-lg p-6">
-                <h3
-                  class="text-lg font-semibold text-red-800 mb-4 flex items-center"
-                >
-                  <svg
-                    class="w-6 h-6 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M6 18L18 6M6 6l12 12"
-                    ></path>
-                  </svg>
-                  Cons
-                </h3>
-                <ul class="space-y-2 text-sm text-red-700">
-                  <li class="flex items-start">
-                    <span class="mr-2">✗</span>
-                    <span
-                      ><strong>Still consumes DSC for SF push</strong> -
-                      Companion org sync still required (46% cost)</span
-                    >
-                  </li>
-                  <li class="flex items-start">
-                    <span class="mr-2">✗</span>
-                    <span
-                      ><strong>Workato costs remain</strong> - $60K+/year for
-                      3-org sync (not eliminated)</span
-                    >
-                  </li>
-                  <li class="flex items-start">
-                    <span class="mr-2">✗</span>
-                    <span
-                      ><strong>Custom deduplication code</strong> - Must build
-                      and maintain SQL matching logic</span
-                    >
-                  </li>
-                  <li class="flex items-start">
-                    <span class="mr-2">✗</span>
-                    <span
-                      ><strong>Data engineering effort</strong> - 20+
-                      hours/month to maintain unification pipeline</span
-                    >
-                  </li>
-                  <li class="flex items-start">
-                    <span class="mr-2">✗</span>
-                    <span
-                      ><strong>Snowflake compute costs</strong> - $17K+/year for
-                      unification jobs (vs FREE in DC)</span
-                    >
-                  </li>
-                  <li class="flex items-start">
-                    <span class="mr-2">✗</span>
-                    <span
-                      ><strong>Complex architecture</strong> - More moving parts
-                      (Workato + Snowflake + DC + SF)</span
-                    >
-                  </li>
-                  <li class="flex items-start">
-                    <span class="mr-2">✗</span>
-                    <span
-                      ><strong>Longer implementation</strong> - 6+ months vs
-                      8-12 weeks for native DC solution</span
-                    >
-                  </li>
-                </ul>
               </div>
             </div>
           </div>
@@ -943,100 +515,6 @@
                   <td class="px-6 py-4 text-gray-700">8-12 weeks</td>
                   <td class="px-6 py-4 text-gray-700">6+ months</td>
                 </tr>
-                <tr class="hover:bg-gray-50">
-                  <td class="px-6 py-4 font-medium text-gray-900">
-                    Workato Annual Cost
-                  </td>
-                  <td class="px-6 py-4 text-gray-700">
-                    <span class="text-green-600 font-semibold">$0</span>
-                    (eliminated)
-                  </td>
-                  <td class="px-6 py-4 text-gray-700">
-                    <span class="text-red-600 font-semibold">$60K+</span>
-                    (continues)
-                  </td>
-                </tr>
-                <tr class="hover:bg-gray-50">
-                  <td class="px-6 py-4 font-medium text-gray-900">
-                    Snowflake Annual Cost
-                  </td>
-                  <td class="px-6 py-4 text-gray-700">$12K (queries only)</td>
-                  <td class="px-6 py-4 text-gray-700">
-                    $29K (unification + queries)
-                  </td>
-                </tr>
-                <tr class="hover:bg-gray-50">
-                  <td class="px-6 py-4 font-medium text-gray-900">
-                    Data Engineering Effort
-                  </td>
-                  <td class="px-6 py-4 text-gray-700">
-                    <span class="text-green-600 font-semibold">Minimal</span>
-                    (managed by Salesforce)
-                  </td>
-                  <td class="px-6 py-4 text-gray-700">
-                    <span class="text-red-600 font-semibold"
-                      >20+ hrs/month</span
-                    >
-                    (custom SQL)
-                  </td>
-                </tr>
-                <tr class="hover:bg-gray-50">
-                  <td class="px-6 py-4 font-medium text-gray-900">
-                    SF UI Customer 360
-                  </td>
-                  <td class="px-6 py-4 text-gray-700">
-                    <span class="text-green-600 font-semibold">✓ Native</span>
-                  </td>
-                  <td class="px-6 py-4 text-gray-700">
-                    <span class="text-green-600 font-semibold"
-                      >✓ Via DC Push</span
-                    >
-                  </td>
-                </tr>
-                <tr class="hover:bg-gray-50">
-                  <td class="px-6 py-4 font-medium text-gray-900">
-                    Unification Engine
-                  </td>
-                  <td class="px-6 py-4 text-gray-700">
-                    Data Cloud ML matching
-                  </td>
-                  <td class="px-6 py-4 text-gray-700">
-                    Custom SQL deduplication
-                  </td>
-                </tr>
-                <tr class="hover:bg-gray-50">
-                  <td class="px-6 py-4 font-medium text-gray-900">
-                    Data Latency
-                  </td>
-                  <td class="px-6 py-4 text-gray-700">6 hours (batch mode)</td>
-                  <td class="px-6 py-4 text-gray-700">
-                    Real-time in Snowflake, 6hr to SF
-                  </td>
-                </tr>
-                <tr class="hover:bg-gray-50">
-                  <td class="px-6 py-4 font-medium text-gray-900">
-                    Complexity
-                  </td>
-                  <td class="px-6 py-4 text-gray-700">
-                    <span class="text-green-600">Simple</span> (2 systems: DC +
-                    Snowflake)
-                  </td>
-                  <td class="px-6 py-4 text-gray-700">
-                    <span class="text-orange-600">Complex</span> (4 systems:
-                    Workato + Snowflake + DC + SF)
-                  </td>
-                </tr>
-                <tr class="hover:bg-gray-50">
-                  <td class="px-6 py-4 font-medium text-gray-900">
-                    Maintenance Burden
-                  </td>
-                  <td class="px-6 py-4 text-gray-700">
-                    <span class="text-green-600">Low</span>
-                  </td>
-                  <td class="px-6 py-4 text-gray-700">
-                    <span class="text-orange-600">Medium-High</span>
-                  </td>
-                </tr>
               </tbody>
             </table>
           </div>
@@ -1063,7 +541,149 @@
               Recommendation
             </h3>
             <div id="recommendationText" class="text-gray-700">
-              <!-- Populated by JS based on calculations -->
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 5-Year Projection Tab -->
+        <div id="projection" class="tab-content p-8">
+          <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">
+              5-Year Cost & Growth Projection
+            </h2>
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Annual Data Growth Rate (%)
+                  </label>
+                  <input
+                    type="number"
+                    id="growthRate"
+                    value="10"
+                    min="0"
+                    max="100"
+                    step="1"
+                    onchange="updateProjection()"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Daily Changes Growth Rate (%)
+                  </label>
+                  <input
+                    type="number"
+                    id="changesGrowthRate"
+                    value="5"
+                    min="0"
+                    max="100"
+                    step="1"
+                    onchange="updateProjection()"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Projection Scenario
+                  </label>
+                  <select
+                    id="projectionScenario"
+                    onchange="updateProjection()"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="option1">Option 1</option>
+                    <option value="option2">Option 2</option>
+                    <option value="both">Both Options</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Projection Chart -->
+          <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">
+              DSC Consumption Trend (5 Years)
+            </h3>
+            <canvas id="projectionChart" height="80"></canvas>
+          </div>
+
+          <!-- Projection Table -->
+          <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">
+              Detailed 5-Year Projection
+            </h3>
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                    >
+                      Year
+                    </th>
+                    <th
+                      class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase"
+                    >
+                      Total Records
+                    </th>
+                    <th
+                      class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase"
+                    >
+                      Daily Changes
+                    </th>
+                    <th
+                      class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase"
+                    >
+                      Storage DSC/mo
+                    </th>
+                    <th
+                      class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase"
+                    >
+                      Annual DSC
+                    </th>
+                    <th
+                      class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase"
+                    >
+                      % of Allocation
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="projectionTable" class="divide-y divide-gray-200">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Summary Insights -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+              <div class="text-sm text-green-700 mb-2">Year 5 Total Cost</div>
+              <div id="year5Total" class="text-2xl font-bold text-green-800">
+                -
+              </div>
+            </div>
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+              <div class="text-sm text-yellow-700 mb-2">
+                5-Year Cumulative DSC
+              </div>
+              <div
+                id="cumulativeDSC"
+                class="text-2xl font-bold text-yellow-800"
+              >
+                -
+              </div>
+            </div>
+            <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+              <div class="text-sm text-red-700 mb-2">
+                Projected Allocation Usage (Yr 5)
+              </div>
+              <div id="year5Percent" class="text-2xl font-bold text-red-800">
+                -
+              </div>
             </div>
           </div>
         </div>
@@ -1406,7 +1026,7 @@
               </div>
             </div>
 
-            <!-- Other Rates -->
+            <!-- Storage & Other Rates -->
             <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
               <h3
                 class="text-lg font-semibold text-gray-800 mb-4 flex items-center"
@@ -1421,10 +1041,10 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                    d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"
                   ></path>
                 </svg>
-                Calculated Insights & Features
+                Storage & Calculated Features
               </h3>
               <div class="overflow-x-auto">
                 <table class="w-full">
@@ -1455,6 +1075,46 @@
                   <tbody class="divide-y divide-gray-200">
                     <tr>
                       <td class="px-4 py-3 text-sm text-gray-900 font-medium">
+                        Data Storage
+                      </td>
+                      <td class="px-4 py-3">
+                        <input
+                          type="number"
+                          id="rate_storage"
+                          value="40"
+                          disabled
+                          class="rate-input w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          onchange="updateRatesAndRecalc()"
+                        />
+                      </td>
+                      <td class="px-4 py-3 text-sm text-gray-600">
+                        per GB/month
+                      </td>
+                      <td class="px-4 py-3 text-sm text-gray-600">
+                        Persistent data storage
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="px-4 py-3 text-sm text-gray-900 font-medium">
+                        Avg Record Size (KB)
+                      </td>
+                      <td class="px-4 py-3">
+                        <input
+                          type="number"
+                          id="rate_record_size"
+                          value="5"
+                          disabled
+                          class="rate-input w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          onchange="updateRatesAndRecalc()"
+                        />
+                      </td>
+                      <td class="px-4 py-3 text-sm text-gray-600">KB</td>
+                      <td class="px-4 py-3 text-sm text-gray-600">
+                        Average size per record
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="px-4 py-3 text-sm text-gray-900 font-medium">
                         Calculated Insights
                       </td>
                       <td class="px-4 py-3">
@@ -1473,27 +1133,6 @@
                       </td>
                       <td class="px-4 py-3 text-sm text-gray-600">
                         Custom field calculations
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="px-4 py-3 text-sm text-gray-900 font-medium">
-                        Segmentation
-                      </td>
-                      <td class="px-4 py-3">
-                        <input
-                          type="number"
-                          id="rate_segmentation"
-                          value="100"
-                          disabled
-                          class="rate-input w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          onchange="updateRatesAndRecalc()"
-                        />
-                      </td>
-                      <td class="px-4 py-3 text-sm text-gray-600">
-                        per 1,000 profiles/segment
-                      </td>
-                      <td class="px-4 py-3 text-sm text-gray-600">
-                        Per segment evaluation
                       </td>
                     </tr>
                     <tr>
@@ -1581,73 +1220,14 @@
                 </table>
               </div>
             </div>
-
-            <!-- Info Box -->
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
-              <h3
-                class="text-lg font-semibold text-blue-800 mb-3 flex items-center"
-              >
-                <svg
-                  class="w-6 h-6 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
-                </svg>
-                How to Use
-              </h3>
-              <ul class="text-sm text-blue-700 space-y-2">
-                <li class="flex items-start">
-                  <span class="mr-2">1.</span>
-                  <span
-                    >Rates are <strong>locked by default</strong> with
-                    Salesforce Data Cloud official pricing</span
-                  >
-                </li>
-                <li class="flex items-start">
-                  <span class="mr-2">2.</span>
-                  <span
-                    >Click <strong>"Unlock to Edit"</strong> to modify rates for
-                    custom scenarios or updated pricing</span
-                  >
-                </li>
-                <li class="flex items-start">
-                  <span class="mr-2">3.</span>
-                  <span
-                    >Changes automatically
-                    <strong>recalculate all costs</strong> across Option 1 and
-                    Option 2</span
-                  >
-                </li>
-                <li class="flex items-start">
-                  <span class="mr-2">4.</span>
-                  <span
-                    >Click <strong>"Reset to Defaults"</strong> to restore
-                    Salesforce official rates</span
-                  >
-                </li>
-                <li class="flex items-start">
-                  <span class="mr-2">5.</span>
-                  <span
-                    ><strong>Tip:</strong> Batch mode is FREE for SF ingestion
-                    and 5-20x cheaper for all other operations</span
-                  >
-                </li>
-              </ul>
-            </div>
           </div>
         </div>
       </div>
     </div>
 
     <script>
-      // Data structures
+      // Global state
+      let totalDSCAllocation = 136250000;
       const scenarios = {
         option1: {
           objects: [],
@@ -1673,6 +1253,8 @@
           output: 0.07, // Same as batch: 70 per 1M rows = 0.07 per 1,000
           companion: 0.07, // Same as batch: 70 per 1M rows = 0.07 per 1,000
         },
+        storage: 40, // per GB/month
+        recordSize: 5, // KB per record
         insights: 0.015, // Batch: 15 per 1M rows = 0.015 per 1,000
         insightsRealtime: 0.8, // Streaming: 800 per 1M rows = 0.8 per 1,000
         segmentation: 0.02, // 20 per 1M rows = 0.02 per 1,000
@@ -1684,14 +1266,16 @@
 
       let ratesLocked = true;
       let comparisonChart = null;
+      let projectionChart = null;
 
-      // Default objects for each scenario
+      // Default objects
       const defaultObjects = {
         option1: [
           {
             name: "Account",
             volume: 100000,
             dailyChanges: 100,
+            processingMode: "batch",
             unify: true,
             pushToSF: true,
           },
@@ -1699,6 +1283,7 @@
             name: "Contact",
             volume: 1400000,
             dailyChanges: 300,
+            processingMode: "batch",
             unify: true,
             pushToSF: true,
           },
@@ -1706,22 +1291,9 @@
             name: "Opportunity",
             volume: 50000,
             dailyChanges: 500,
+            processingMode: "batch",
             unify: false,
             pushToSF: false,
-          },
-          {
-            name: "Investment_Vehicle__c",
-            volume: 200,
-            dailyChanges: 5,
-            unify: false,
-            pushToSF: true,
-          },
-          {
-            name: "Commitment__c",
-            volume: 10000,
-            dailyChanges: 50,
-            unify: false,
-            pushToSF: true,
           },
         ],
         option2: [
@@ -1743,18 +1315,6 @@
             dailyChanges: 500,
             pushToSF: false,
           },
-          {
-            name: "Investment_Vehicle__c",
-            volume: 200,
-            dailyChanges: 5,
-            pushToSF: true,
-          },
-          {
-            name: "Commitment__c",
-            volume: 10000,
-            dailyChanges: 50,
-            pushToSF: true,
-          },
         ],
       };
 
@@ -1774,6 +1334,18 @@
         calculateScenario("option1");
         calculateScenario("option2");
         updateComparison();
+        updateProjection();
+      }
+
+      // Update DSC Allocation
+      function updateDSCAllocation() {
+        totalDSCAllocation =
+          parseFloat(document.getElementById("totalDSCAllocation").value) ||
+          136250000;
+        calculateScenario("option1");
+        calculateScenario("option2");
+        updateComparison();
+        updateProjection();
       }
 
       // Sync rates to UI
@@ -1796,9 +1368,10 @@
         document.getElementById("rate_realtime_companion").value =
           dscRates.realtime.companion;
 
+        document.getElementById("rate_storage").value = dscRates.storage;
+        document.getElementById("rate_record_size").value =
+          dscRates.recordSize;
         document.getElementById("rate_insights").value = dscRates.insights;
-        document.getElementById("rate_segmentation").value =
-          dscRates.segmentation;
         document.getElementById("rate_zerocopy_rate").value = dscRates.zeroCopyQueryRate;
         document.getElementById("rate_zerocopy_queries").value = dscRates.zeroCopyQueriesPerMonth;
         document.getElementById("rate_insights_per_profile").value =
@@ -1862,10 +1435,12 @@
             document.getElementById("rate_realtime_companion").value,
           ) || 0;
 
+        dscRates.storage =
+          parseFloat(document.getElementById("rate_storage").value) || 0;
+        dscRates.recordSize =
+          parseFloat(document.getElementById("rate_record_size").value) || 0;
         dscRates.insights =
           parseFloat(document.getElementById("rate_insights").value) || 0;
-        dscRates.segmentation =
-          parseFloat(document.getElementById("rate_segmentation").value) || 0;
         dscRates.zeroCopyQueryRate =
           parseFloat(document.getElementById("rate_zerocopy_rate").value) || 0;
         dscRates.zeroCopyQueriesPerMonth =
@@ -1880,6 +1455,7 @@
         calculateScenario("option1");
         calculateScenario("option2");
         updateComparison();
+        updateProjection();
       }
 
       // Reset rates to defaults
@@ -1897,6 +1473,8 @@
             output: 0.07,
             companion: 0.07,
           },
+          storage: 40,
+          recordSize: 5,
           insights: 0.015,
           insightsRealtime: 0.8,
           segmentation: 0.02,
@@ -1912,21 +1490,20 @@
 
       // Tab switching
       function switchTab(tabName) {
-        // Update buttons
         document.querySelectorAll(".tab-button").forEach((btn) => {
           btn.classList.remove("active");
         });
         event.target.classList.add("active");
 
-        // Update content
         document.querySelectorAll(".tab-content").forEach((content) => {
           content.classList.remove("active");
         });
         document.getElementById(tabName).classList.add("active");
 
-        // Update comparison if needed
         if (tabName === "comparison") {
           updateComparison();
+        } else if (tabName === "projection") {
+          updateProjection();
         }
       }
 
@@ -1938,6 +1515,7 @@
                 name: "New_Object__c",
                 volume: 0,
                 dailyChanges: 0,
+                processingMode: "batch",
                 unify: false,
                 pushToSF: false,
               }
@@ -1960,6 +1538,13 @@
         calculateScenario(scenario);
       }
 
+      // Calculate storage DSC for an object
+      function calculateStorageDSC(volume) {
+        // volume * recordSize (KB) / 1024 / 1024 = GB
+        const gb = (volume * dscRates.recordSize) / 1024 / 1024;
+        return gb * dscRates.storage;
+      }
+
       // Render object table
       function renderObjectTable(scenario) {
         const tbody = document.getElementById(
@@ -1970,6 +1555,8 @@
         scenarios[scenario].objects.forEach((obj, index) => {
           const row = document.createElement("tr");
           row.className = "object-row";
+
+          const storageDSC = calculateStorageDSC(obj.volume);
 
           if (scenario === "option1") {
             row.innerHTML = `
@@ -1989,6 +1576,12 @@
                                 class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         </td>
                         <td class="px-4 py-3 text-center">
+                            <select class="mode-select" onchange="updateObject('${scenario}', ${index}, 'processingMode', this.value)">
+                                <option value="batch" ${obj.processingMode === "batch" ? "selected" : ""}>Batch (6hr)</option>
+                                <option value="realtime" ${obj.processingMode === "realtime" ? "selected" : ""}>Real-time</option>
+                            </select>
+                        </td>
+                        <td class="px-4 py-3 text-center">
                             <input type="checkbox" ${obj.unify ? "checked" : ""}
                                 onchange="updateObject('${scenario}', ${index}, 'unify', this.checked)"
                                 class="toggle-checkbox">
@@ -1997,6 +1590,9 @@
                             <input type="checkbox" ${obj.pushToSF ? "checked" : ""}
                                 onchange="updateObject('${scenario}', ${index}, 'pushToSF', this.checked)"
                                 class="toggle-checkbox">
+                        </td>
+                        <td class="px-4 py-3 text-right text-sm font-semibold text-gray-700">
+                            ${formatNumber(storageDSC)}
                         </td>
                         <td class="px-4 py-3 text-center">
                             <button onclick="removeObject('${scenario}', ${index})"
@@ -2029,6 +1625,9 @@
                                 onchange="updateObject('${scenario}', ${index}, 'pushToSF', this.checked)"
                                 class="toggle-checkbox">
                         </td>
+                        <td class="px-4 py-3 text-right text-sm font-semibold text-gray-700">
+                            ${formatNumber(storageDSC)}
+                        </td>
                         <td class="px-4 py-3 text-center">
                             <button onclick="removeObject('${scenario}', ${index})"
                                 class="text-red-600 hover:text-red-800">
@@ -2047,6 +1646,7 @@
       // Update object
       function updateObject(scenario, index, field, value) {
         scenarios[scenario].objects[index][field] = value;
+        renderObjectTable(scenario);
         calculateScenario(scenario);
       }
 
@@ -2057,59 +1657,75 @@
 
         if (scenario === "option1") {
           // Option 1: SF → DC → Snowflake
-
-          // 1. Batch ingestion (FREE for SF objects)
+          // Calculate costs per object based on processing mode
           costs.ingestion = 0;
+          costs.identityResolution = 0;
+          costs.snowflakeOutput = 0;
+          costs.companionSync = 0;
+          costs.calculatedInsights = 0;
+          costs.storage = 0;
 
-          // 2. Identity Resolution (batch mode)
+          objects.forEach((obj) => {
+            const mode = obj.processingMode || "batch";
+            const rates =
+              mode === "batch" ? dscRates.batch : dscRates.realtime;
+
+            // Ingestion
+            if (mode === "realtime") {
+              const monthlyRecords = obj.dailyChanges * 30;
+              costs.ingestion += (monthlyRecords / 1000) * rates.ingestion;
+            }
+
+            // Identity Resolution
+            if (obj.unify) {
+              const monthlyUpdates = obj.dailyChanges * 30;
+              costs.identityResolution += monthlyUpdates * rates.identity;
+            }
+
+            // Output to Snowflake
+            const monthlyOutput = obj.dailyChanges * 30 * dscRates.syncsPerDay;
+            costs.snowflakeOutput += (monthlyOutput / 1000) * rates.output;
+
+            // Companion Org Sync
+            if (obj.pushToSF) {
+              costs.companionSync +=
+                (obj.volume / 1000) * rates.companion * 30;
+            }
+
+            // Storage
+            costs.storage += calculateStorageDSC(obj.volume);
+          });
+
+          // Calculated Insights (for unified profiles)
           const monthlyProfileUpdates = objects
             .filter((obj) => obj.unify)
             .reduce((sum, obj) => sum + obj.dailyChanges * 30, 0);
-          costs.identityResolution =
-            monthlyProfileUpdates * dscRates.batch.identity;
-
-          // 3. Output to Snowflake (batch mode)
-          const monthlyOutputRecords = objects.reduce(
-            (sum, obj) => sum + obj.dailyChanges * 30 * dscRates.syncsPerDay,
-            0,
-          );
-          costs.snowflakeOutput =
-            (monthlyOutputRecords / 1000) * dscRates.batch.output;
-
-          // 4. Companion Org Sync (batch daily)
-          const totalProfilesToSync = objects
-            .filter((obj) => obj.pushToSF)
-            .reduce((sum, obj) => sum + obj.volume, 0);
-          costs.companionSync =
-            (totalProfilesToSync / 1000) * dscRates.batch.companion * 30;
-
-          // 5. Calculated Insights (assume 5 per unified profile, incremental only)
           costs.calculatedInsights =
             (monthlyProfileUpdates *
               dscRates.insightsPerProfile *
               dscRates.insights) /
             1000;
         } else {
-          // Option 2: SF → Workato → Snowflake → DC (zero-copy) → SF
-
-          // 1. No ingestion cost (done via Workato to Snowflake)
+          // Option 2: SF → Workato → Snowflake → DC
           costs.ingestion = 0;
-
-          // 2. No unification cost in DC (done in Snowflake)
           costs.identityResolution = 0;
-
-          // 3. Zero-copy read (query-based consumption)
+          // Zero-Copy: based on query volume
           costs.zeroCopy = (dscRates.zeroCopyQueriesPerMonth / 1000) * dscRates.zeroCopyQueryRate;
+          costs.companionSync = 0;
+          costs.calculatedInsights = 0;
+          costs.storage = 0;
 
-          // 4. Companion Org Sync (still needed to push unified data back to SF)
+          // Companion Org Sync
           const totalProfilesToSync = objects
             .filter((obj) => obj.pushToSF)
             .reduce((sum, obj) => sum + obj.volume, 0);
           costs.companionSync =
             (totalProfilesToSync / 1000) * dscRates.batch.companion * 30;
 
-          // 5. No calculated insights in DC (done in Snowflake)
-          costs.calculatedInsights = 0;
+          // Storage
+          objects.forEach((obj) => {
+            costs.storage += calculateStorageDSC(obj.volume);
+          });
         }
 
         // Total
@@ -2118,7 +1734,7 @@
           0,
         );
         const annualDSC = monthlyDSC * 12;
-        const percent = (annualDSC / 136250000) * 100;
+        const percent = (annualDSC / totalDSCAllocation) * 100;
 
         // Update UI
         const suffix = scenario === "option1" ? "1" : "2";
@@ -2128,6 +1744,8 @@
           formatNumber(annualDSC);
         document.getElementById(`percent${suffix}`).textContent =
           percent.toFixed(1) + "%";
+        document.getElementById(`storage${suffix}`).textContent =
+          formatNumber(costs.storage);
 
         // Update breakdown
         updateBreakdown(scenario, costs, monthlyDSC);
@@ -2175,6 +1793,11 @@
                   value: costs.calculatedInsights,
                   color: "pink",
                 },
+                {
+                  label: "Data Storage",
+                  value: costs.storage,
+                  color: "yellow",
+                },
               ]
             : [
                 {
@@ -2186,6 +1809,11 @@
                   label: "Companion Org Sync",
                   value: costs.companionSync,
                   color: "purple",
+                },
+                {
+                  label: "Data Storage",
+                  value: costs.storage,
+                  color: "yellow",
                 },
               ];
 
@@ -2218,13 +1846,21 @@
                 costs.snowflakeOutput,
                 costs.companionSync,
                 costs.calculatedInsights,
+                costs.storage,
               ]
-            : [costs.zeroCopy, costs.companionSync];
+            : [costs.zeroCopy, costs.companionSync, costs.storage];
 
         const labels =
           scenario === "option1"
-            ? ["Ingestion", "Identity", "Output", "Sync", "Insights"]
-            : ["Zero-Copy", "Sync"];
+            ? [
+                "Ingestion",
+                "Identity",
+                "Output",
+                "Sync",
+                "Insights",
+                "Storage",
+              ]
+            : ["Zero-Copy", "Sync", "Storage"];
 
         if (scenarios[scenario].charts.summary) {
           scenarios[scenario].charts.summary.destroy();
@@ -2243,6 +1879,7 @@
                   "rgba(249, 115, 22, 0.8)",
                   "rgba(168, 85, 247, 0.8)",
                   "rgba(236, 72, 153, 0.8)",
+                  "rgba(234, 179, 8, 0.8)",
                 ],
               },
             ],
@@ -2279,10 +1916,11 @@
           data: {
             labels: [
               "Ingestion",
-              "Identity Resolution",
-              "Output/Zero-Copy",
-              "Companion Sync",
+              "Identity",
+              "Output/Zero",
+              "Sync",
               "Insights",
+              "Storage",
             ],
             datasets: [
               {
@@ -2293,6 +1931,7 @@
                   (option1Costs.snowflakeOutput || 0) * 12,
                   (option1Costs.companionSync || 0) * 12,
                   (option1Costs.calculatedInsights || 0) * 12,
+                  (option1Costs.storage || 0) * 12,
                 ],
                 backgroundColor: "rgba(59, 130, 246, 0.8)",
                 borderColor: "rgb(59, 130, 246)",
@@ -2306,6 +1945,7 @@
                   (option2Costs.zeroCopy || 0) * 12,
                   (option2Costs.companionSync || 0) * 12,
                   0,
+                  (option2Costs.storage || 0) * 12,
                 ],
                 backgroundColor: "rgba(168, 85, 247, 0.8)",
                 borderColor: "rgb(168, 85, 247)",
@@ -2345,9 +1985,9 @@
 
         // Update comparison table
         document.getElementById("comp-dsc-1").innerHTML =
-          `<span class="font-bold text-blue-600">${formatNumber(scenarios.option1.annualDSC || 0)} DSC</span> (${(((scenarios.option1.annualDSC || 0) / 136250000) * 100).toFixed(1)}%)`;
+          `<span class="font-bold text-blue-600">${formatNumber(scenarios.option1.annualDSC || 0)} DSC</span> (${(((scenarios.option1.annualDSC || 0) / totalDSCAllocation) * 100).toFixed(1)}%)`;
         document.getElementById("comp-dsc-2").innerHTML =
-          `<span class="font-bold text-purple-600">${formatNumber(scenarios.option2.annualDSC || 0)} DSC</span> (${(((scenarios.option2.annualDSC || 0) / 136250000) * 100).toFixed(1)}%)`;
+          `<span class="font-bold text-purple-600">${formatNumber(scenarios.option2.annualDSC || 0)} DSC</span> (${(((scenarios.option2.annualDSC || 0) / totalDSCAllocation) * 100).toFixed(1)}%)`;
 
         // Update recommendation
         updateRecommendation();
@@ -2369,27 +2009,6 @@
                         <div class="text-2xl font-bold text-blue-600 mb-2">✅ Recommended: Option 1 (SF → Data Cloud → Snowflake)</div>
                         <p class="text-lg mb-4">Option 1 saves <strong>${formatNumber(savings)} DSC/year (${savingsPercent.toFixed(1)}%)</strong> compared to Option 2.</p>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        <div class="bg-white p-4 rounded-lg border border-green-200">
-                            <h4 class="font-semibold text-green-800 mb-2">Why Option 1 Wins:</h4>
-                            <ul class="text-sm text-gray-700 space-y-1">
-                                <li>• Lower DSC consumption</li>
-                                <li>• Eliminates Workato costs ($60K/year)</li>
-                                <li>• Faster implementation (8-12 weeks)</li>
-                                <li>• Native SF unification (ML-powered)</li>
-                                <li>• Less maintenance overhead</li>
-                            </ul>
-                        </div>
-                        <div class="bg-white p-4 rounded-lg border border-gray-200">
-                            <h4 class="font-semibold text-gray-800 mb-2">When to Consider Option 2:</h4>
-                            <ul class="text-sm text-gray-700 space-y-1">
-                                <li>• Need complex Snowflake transformations</li>
-                                <li>• Already have Snowflake unification built</li>
-                                <li>• Require real-time analytics (vs 6hr batch)</li>
-                                <li>• Custom matching logic beyond DC capabilities</li>
-                            </ul>
-                        </div>
-                    </div>
                 `;
         } else {
           html = `
@@ -2397,32 +2016,248 @@
                         <div class="text-2xl font-bold text-purple-600 mb-2">✅ Recommended: Option 2 (SF → Workato → Snowflake → DC)</div>
                         <p class="text-lg mb-4">Option 2 saves <strong>${formatNumber(savings)} DSC/year (${savingsPercent.toFixed(1)}%)</strong> compared to Option 1.</p>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        <div class="bg-white p-4 rounded-lg border border-green-200">
-                            <h4 class="font-semibold text-green-800 mb-2">Why Option 2 Wins:</h4>
-                            <ul class="text-sm text-gray-700 space-y-1">
-                                <li>• Significantly lower DSC consumption</li>
-                                <li>• Snowflake-native transformations</li>
-                                <li>• Zero-copy performance</li>
-                                <li>• Full control over unification logic</li>
-                                <li>• Real-time analytics capability</li>
-                            </ul>
-                        </div>
-                        <div class="bg-white p-4 rounded-lg border border-red-200">
-                            <h4 class="font-semibold text-red-800 mb-2">Trade-offs to Consider:</h4>
-                            <ul class="text-sm text-gray-700 space-y-1">
-                                <li>• Still need Workato ($60K/year)</li>
-                                <li>• Higher Snowflake compute costs ($17K+/year)</li>
-                                <li>• Custom SQL maintenance required</li>
-                                <li>• Longer implementation time (6+ months)</li>
-                                <li>• More complex architecture</li>
-                            </ul>
-                        </div>
-                    </div>
                 `;
         }
 
         container.innerHTML = html;
+      }
+
+      // Update 5-year projection
+      function updateProjection() {
+        const growthRate =
+          parseFloat(document.getElementById("growthRate").value) / 100 || 0.1;
+        const changesGrowthRate =
+          parseFloat(document.getElementById("changesGrowthRate").value) / 100 ||
+          0.05;
+        const projectionScenario =
+          document.getElementById("projectionScenario").value;
+
+        const projections = [];
+        const scenarios_to_project =
+          projectionScenario === "both"
+            ? ["option1", "option2"]
+            : [projectionScenario];
+
+        scenarios_to_project.forEach((scenario) => {
+          const baseObjects = JSON.parse(
+            JSON.stringify(scenarios[scenario].objects),
+          );
+          const yearlyData = [];
+
+          for (let year = 1; year <= 5; year++) {
+            // Project object growth
+            const projectedObjects = baseObjects.map((obj) => ({
+              ...obj,
+              volume: Math.round(obj.volume * Math.pow(1 + growthRate, year)),
+              dailyChanges: Math.round(
+                obj.dailyChanges * Math.pow(1 + changesGrowthRate, year),
+              ),
+            }));
+
+            // Calculate costs for this year
+            const tempScenario = {
+              objects: projectedObjects,
+              charts: { summary: null },
+            };
+
+            // Use same calculation logic
+            const costs = {};
+            if (scenario === "option1") {
+              costs.ingestion = 0;
+              costs.identityResolution = 0;
+              costs.snowflakeOutput = 0;
+              costs.companionSync = 0;
+              costs.calculatedInsights = 0;
+              costs.storage = 0;
+
+              projectedObjects.forEach((obj) => {
+                const mode = obj.processingMode || "batch";
+                const rates =
+                  mode === "batch" ? dscRates.batch : dscRates.realtime;
+
+                if (mode === "realtime") {
+                  const monthlyRecords = obj.dailyChanges * 30;
+                  costs.ingestion += (monthlyRecords / 1000) * rates.ingestion;
+                }
+
+                if (obj.unify) {
+                  const monthlyUpdates = obj.dailyChanges * 30;
+                  costs.identityResolution += monthlyUpdates * rates.identity;
+                }
+
+                const monthlyOutput =
+                  obj.dailyChanges * 30 * dscRates.syncsPerDay;
+                costs.snowflakeOutput += (monthlyOutput / 1000) * rates.output;
+
+                if (obj.pushToSF) {
+                  costs.companionSync +=
+                    (obj.volume / 1000) * rates.companion * 30;
+                }
+
+                costs.storage += calculateStorageDSC(obj.volume);
+              });
+
+              const monthlyProfileUpdates = projectedObjects
+                .filter((obj) => obj.unify)
+                .reduce((sum, obj) => sum + obj.dailyChanges * 30, 0);
+              costs.calculatedInsights =
+                (monthlyProfileUpdates *
+                  dscRates.insightsPerProfile *
+                  dscRates.insights) /
+                1000;
+            } else {
+              costs.ingestion = 0;
+              costs.identityResolution = 0;
+              // Zero-Copy: based on query volume
+              costs.zeroCopy = (dscRates.zeroCopyQueriesPerMonth / 1000) * dscRates.zeroCopyQueryRate;
+              costs.companionSync = 0;
+              costs.calculatedInsights = 0;
+              costs.storage = 0;
+
+              const totalProfilesToSync = projectedObjects
+                .filter((obj) => obj.pushToSF)
+                .reduce((sum, obj) => sum + obj.volume, 0);
+              costs.companionSync =
+                (totalProfilesToSync / 1000) * dscRates.batch.companion * 30;
+
+              projectedObjects.forEach((obj) => {
+                costs.storage += calculateStorageDSC(obj.volume);
+              });
+            }
+
+            const monthlyDSC = Object.values(costs).reduce(
+              (sum, cost) => sum + cost,
+              0,
+            );
+            const annualDSC = monthlyDSC * 12;
+
+            yearlyData.push({
+              year,
+              totalRecords: projectedObjects.reduce(
+                (sum, obj) => sum + obj.volume,
+                0,
+              ),
+              dailyChanges: projectedObjects.reduce(
+                (sum, obj) => sum + obj.dailyChanges,
+                0,
+              ),
+              storage: costs.storage,
+              annualDSC,
+              percent: (annualDSC / totalDSCAllocation) * 100,
+            });
+          }
+
+          projections.push({
+            scenario,
+            data: yearlyData,
+          });
+        });
+
+        // Render projection table
+        renderProjectionTable(projections);
+
+        // Render projection chart
+        renderProjectionChart(projections);
+
+        // Update summary
+        if (projections.length > 0) {
+          const lastYear = projections[0].data[4];
+          document.getElementById("year5Total").textContent = formatNumber(
+            lastYear.annualDSC,
+          );
+          document.getElementById("year5Percent").textContent =
+            lastYear.percent.toFixed(1) + "%";
+
+          const cumulative = projections[0].data.reduce(
+            (sum, year) => sum + year.annualDSC,
+            0,
+          );
+          document.getElementById("cumulativeDSC").textContent =
+            formatNumber(cumulative);
+        }
+      }
+
+      // Render projection table
+      function renderProjectionTable(projections) {
+        const tbody = document.getElementById("projectionTable");
+        tbody.innerHTML = "";
+
+        if (projections.length === 0) return;
+
+        const mainProjection = projections[0];
+
+        mainProjection.data.forEach((yearData) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+                    <td class="px-4 py-3 font-medium text-gray-900">Year ${yearData.year}</td>
+                    <td class="px-4 py-3 text-right text-gray-700">${formatNumber(yearData.totalRecords)}</td>
+                    <td class="px-4 py-3 text-right text-gray-700">${formatNumber(yearData.dailyChanges)}</td>
+                    <td class="px-4 py-3 text-right text-gray-700">${formatNumber(yearData.storage)}</td>
+                    <td class="px-4 py-3 text-right font-semibold text-gray-900">${formatNumber(yearData.annualDSC)}</td>
+                    <td class="px-4 py-3 text-right ${yearData.percent > 100 ? "text-red-600 font-bold" : "text-gray-700"}">${yearData.percent.toFixed(1)}%</td>
+                `;
+          tbody.appendChild(row);
+        });
+      }
+
+      // Render projection chart
+      function renderProjectionChart(projections) {
+        const ctx = document.getElementById("projectionChart").getContext("2d");
+
+        if (projectionChart) {
+          projectionChart.destroy();
+        }
+
+        const datasets = projections.map((proj, idx) => ({
+          label:
+            proj.scenario === "option1"
+              ? "Option 1: SF → DC → Snowflake"
+              : "Option 2: SF → Workato → Snowflake → DC",
+          data: proj.data.map((d) => d.annualDSC),
+          borderColor:
+            idx === 0 ? "rgb(59, 130, 246)" : "rgb(168, 85, 247)",
+          backgroundColor:
+            idx === 0 ? "rgba(59, 130, 246, 0.1)" : "rgba(168, 85, 247, 0.1)",
+          borderWidth: 3,
+          fill: true,
+          tension: 0.4,
+        }));
+
+        projectionChart = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: ["Year 1", "Year 2", "Year 3", "Year 4", "Year 5"],
+            datasets: datasets,
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: function (value) {
+                    return formatNumber(value);
+                  },
+                },
+              },
+            },
+            plugins: {
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    return (
+                      context.dataset.label +
+                      ": " +
+                      formatNumber(context.parsed.y) +
+                      " DSC/year"
+                    );
+                  },
+                },
+              },
+            },
+          },
+        });
       }
 
       // Format number
