@@ -2089,6 +2089,13 @@
               dscRates.insightsPerProfile *
               dscRates.insights) /
             1000;
+
+          // Build calculation strings
+          costs.ingestionCalc = 'FREE - Batch mode from SF orgs';
+          costs.identityCalc = `${monthlyProfileUpdates.toLocaleString()} profiles/month × ${dscRates.batch.identity} DSC/profile = ${formatNumber(costs.identityResolution)} DSC`;
+          costs.outputCalc = `${monthlyOutputRecords.toLocaleString()} records/month × ${dscRates.syncsPerDay} syncs/day ÷ 1,000 × ${dscRates.batch.output} DSC = ${formatNumber(costs.snowflakeOutput)} DSC`;
+          costs.companionCalc = `${totalProfilesToSync.toLocaleString()} profiles ÷ 1,000 × ${dscRates.batch.companion} DSC × 30 days = ${formatNumber(costs.companionSync)} DSC`;
+          costs.insightsCalc = `${monthlyProfileUpdates.toLocaleString()} profiles/month × ${dscRates.insightsPerProfile} insights/profile × ${dscRates.insights} DSC ÷ 1,000 = ${formatNumber(costs.calculatedInsights)} DSC`;
         } else {
           // Option 2: SF → Workato → Snowflake → DC (zero-copy) → SF
 
@@ -2110,13 +2117,16 @@
 
           // 5. No calculated insights in DC (done in Snowflake)
           costs.calculatedInsights = 0;
+
+          // Build calculation strings
+          costs.zeroCopyCalc = `${dscRates.zeroCopyQueriesPerMonth.toLocaleString()} queries/month ÷ 1,000 × ${dscRates.zeroCopyQueryRate} DSC (Data Federation: DC reading FROM Snowflake) = ${formatNumber(costs.zeroCopy)} DSC`;
+          costs.companionCalc = `${totalProfilesToSync.toLocaleString()} profiles ÷ 1,000 × ${dscRates.batch.companion} DSC × 30 days = ${formatNumber(costs.companionSync)} DSC`;
         }
 
-        // Total
-        const monthlyDSC = Object.values(costs).reduce(
-          (sum, cost) => sum + cost,
-          0,
-        );
+        // Total (exclude calculation strings)
+        const monthlyDSC = Object.keys(costs)
+          .filter(key => !key.endsWith('Calc'))
+          .reduce((sum, key) => sum + costs[key], 0);
         const annualDSC = monthlyDSC * 12;
         const percent = (annualDSC / 136250000) * 100;
 
@@ -2127,7 +2137,7 @@
         document.getElementById(`annual${suffix}`).textContent =
           formatNumber(annualDSC);
         document.getElementById(`percent${suffix}`).textContent =
-          percent.toFixed(1) + "%";
+          percent.toFixed(2) + "%";
 
         // Update breakdown
         updateBreakdown(scenario, costs, monthlyDSC);
@@ -2153,52 +2163,72 @@
                 {
                   label: "SF Object Ingestion",
                   value: costs.ingestion,
+                  calculation: costs.ingestionCalc || "FREE - Batch mode from SF orgs",
                   color: "blue",
                 },
                 {
                   label: "Identity Resolution",
                   value: costs.identityResolution,
+                  calculation: costs.identityCalc || "",
                   color: "green",
                 },
                 {
                   label: "Output to Snowflake",
                   value: costs.snowflakeOutput,
+                  calculation: costs.outputCalc || "",
                   color: "orange",
                 },
                 {
                   label: "Companion Org Sync",
                   value: costs.companionSync,
+                  calculation: costs.companionCalc || "",
                   color: "purple",
                 },
                 {
                   label: "Calculated Insights",
                   value: costs.calculatedInsights,
+                  calculation: costs.insightsCalc || "",
                   color: "pink",
                 },
               ]
             : [
                 {
-                  label: "Zero-Copy Queries",
+                  label: "Data Federation (Zero-Copy)",
                   value: costs.zeroCopy,
+                  calculation: costs.zeroCopyCalc || "",
                   color: "blue",
                 },
                 {
                   label: "Companion Org Sync",
                   value: costs.companionSync,
+                  calculation: costs.companionCalc || "",
                   color: "purple",
                 },
               ];
 
         components.forEach((comp) => {
           const percent = total > 0 ? (comp.value / total) * 100 : 0;
+          const annual = comp.value * 12;
           const item = document.createElement("div");
           item.className =
-            "flex justify-between items-center p-3 bg-gray-50 rounded";
+            "p-4 bg-gradient-to-r from-gray-50 to-white rounded-lg border border-gray-200 hover:shadow-md transition";
           item.innerHTML = `
-                    <span class="text-sm text-gray-700">${comp.label}</span>
-                    <div class="text-right">
-                        <div class="text-sm font-semibold text-gray-900">${formatNumber(comp.value)}</div>
-                        <div class="text-xs text-gray-500">${percent.toFixed(1)}%</div>
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-sm font-semibold text-gray-800">${comp.label}</span>
+                        <span class="text-xs bg-${comp.color}-100 text-${comp.color}-700 px-2 py-1 rounded">${percent.toFixed(2)}%</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <div>
+                            <div class="text-xs text-gray-500">Monthly DSC</div>
+                            <div class="text-base font-bold text-gray-900">${formatNumber(comp.value)}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-500">Annual DSC</div>
+                            <div class="text-base font-bold text-gray-900">${formatNumber(annual)}</div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-gray-600 bg-white p-2 rounded border border-gray-100">
+                        <span class="font-semibold">Calculation:</span> ${comp.calculation}
                     </div>
                 `;
           container.appendChild(item);
@@ -2345,9 +2375,9 @@
 
         // Update comparison table
         document.getElementById("comp-dsc-1").innerHTML =
-          `<span class="font-bold text-blue-600">${formatNumber(scenarios.option1.annualDSC || 0)} DSC</span> (${(((scenarios.option1.annualDSC || 0) / 136250000) * 100).toFixed(1)}%)`;
+          `<span class="font-bold text-blue-600">${formatNumber(scenarios.option1.annualDSC || 0)} DSC</span> (${(((scenarios.option1.annualDSC || 0) / 136250000) * 100).toFixed(2)}%)`;
         document.getElementById("comp-dsc-2").innerHTML =
-          `<span class="font-bold text-purple-600">${formatNumber(scenarios.option2.annualDSC || 0)} DSC</span> (${(((scenarios.option2.annualDSC || 0) / 136250000) * 100).toFixed(1)}%)`;
+          `<span class="font-bold text-purple-600">${formatNumber(scenarios.option2.annualDSC || 0)} DSC</span> (${(((scenarios.option2.annualDSC || 0) / 136250000) * 100).toFixed(2)}%)`;
 
         // Update recommendation
         updateRecommendation();
@@ -2367,7 +2397,7 @@
           html = `
                     <div class="mb-4">
                         <div class="text-2xl font-bold text-blue-600 mb-2">✅ Recommended: Option 1 (SF → Data Cloud → Snowflake)</div>
-                        <p class="text-lg mb-4">Option 1 saves <strong>${formatNumber(savings)} DSC/year (${savingsPercent.toFixed(1)}%)</strong> compared to Option 2.</p>
+                        <p class="text-lg mb-4">Option 1 saves <strong>${formatNumber(savings)} DSC/year (${savingsPercent.toFixed(2)}%)</strong> compared to Option 2.</p>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         <div class="bg-white p-4 rounded-lg border border-green-200">
@@ -2395,7 +2425,7 @@
           html = `
                     <div class="mb-4">
                         <div class="text-2xl font-bold text-purple-600 mb-2">✅ Recommended: Option 2 (SF → Workato → Snowflake → DC)</div>
-                        <p class="text-lg mb-4">Option 2 saves <strong>${formatNumber(savings)} DSC/year (${savingsPercent.toFixed(1)}%)</strong> compared to Option 1.</p>
+                        <p class="text-lg mb-4">Option 2 saves <strong>${formatNumber(savings)} DSC/year (${savingsPercent.toFixed(2)}%)</strong> compared to Option 1.</p>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         <div class="bg-white p-4 rounded-lg border border-green-200">

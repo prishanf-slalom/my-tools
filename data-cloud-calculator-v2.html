@@ -1665,6 +1665,12 @@
           costs.calculatedInsights = 0;
           costs.storage = 0;
 
+          let ingestionDetails = [];
+          let identityDetails = [];
+          let outputDetails = [];
+          let companionDetails = [];
+          let storageDetails = [];
+
           objects.forEach((obj) => {
             const mode = obj.processingMode || "batch";
             const rates =
@@ -1673,27 +1679,37 @@
             // Ingestion
             if (mode === "realtime") {
               const monthlyRecords = obj.dailyChanges * 30;
-              costs.ingestion += (monthlyRecords / 1000) * rates.ingestion;
+              const ingestionCost = (monthlyRecords / 1000) * rates.ingestion;
+              costs.ingestion += ingestionCost;
+              ingestionDetails.push(`${obj.name}: ${monthlyRecords.toLocaleString()} records/month ÷ 1,000 × ${rates.ingestion} DSC = ${formatNumber(ingestionCost)} DSC`);
             }
 
             // Identity Resolution
             if (obj.unify) {
               const monthlyUpdates = obj.dailyChanges * 30;
-              costs.identityResolution += monthlyUpdates * rates.identity;
+              const identityCost = monthlyUpdates * rates.identity;
+              costs.identityResolution += identityCost;
+              identityDetails.push(`${obj.name}: ${monthlyUpdates.toLocaleString()} profiles/month × ${rates.identity} DSC/profile = ${formatNumber(identityCost)} DSC`);
             }
 
             // Output to Snowflake
             const monthlyOutput = obj.dailyChanges * 30 * dscRates.syncsPerDay;
-            costs.snowflakeOutput += (monthlyOutput / 1000) * rates.output;
+            const outputCost = (monthlyOutput / 1000) * rates.output;
+            costs.snowflakeOutput += outputCost;
+            outputDetails.push(`${obj.name}: ${monthlyOutput.toLocaleString()} records/month × ${dscRates.syncsPerDay} syncs/day ÷ 1,000 × ${rates.output} DSC = ${formatNumber(outputCost)} DSC`);
 
             // Companion Org Sync
             if (obj.pushToSF) {
-              costs.companionSync +=
-                (obj.volume / 1000) * rates.companion * 30;
+              const companionCost = (obj.volume / 1000) * rates.companion * 30;
+              costs.companionSync += companionCost;
+              companionDetails.push(`${obj.name}: ${obj.volume.toLocaleString()} records ÷ 1,000 × ${rates.companion} DSC × 30 days = ${formatNumber(companionCost)} DSC`);
             }
 
             // Storage
-            costs.storage += calculateStorageDSC(obj.volume);
+            const storageCost = calculateStorageDSC(obj.volume);
+            costs.storage += storageCost;
+            const sizeGB = (obj.volume * dscRates.recordSize) / 1024 / 1024;
+            storageDetails.push(`${obj.name}: ${obj.volume.toLocaleString()} records × ${dscRates.recordSize} KB = ${sizeGB.toFixed(2)} GB × ${dscRates.storage} DSC/GB = ${formatNumber(storageCost)} DSC/month`);
           });
 
           // Calculated Insights (for unified profiles)
@@ -1705,6 +1721,20 @@
               dscRates.insightsPerProfile *
               dscRates.insights) /
             1000;
+
+          // Build calculation strings
+          costs.ingestionCalc = ingestionDetails.length > 0
+            ? ingestionDetails.join(' + ')
+            : 'FREE - Batch mode from SF orgs';
+          costs.identityCalc = identityDetails.length > 0
+            ? identityDetails.join(' + ')
+            : 'No objects configured for identity resolution';
+          costs.outputCalc = outputDetails.join(' + ');
+          costs.companionCalc = companionDetails.length > 0
+            ? companionDetails.join(' + ')
+            : 'No companion sync configured';
+          costs.insightsCalc = `${monthlyProfileUpdates.toLocaleString()} profiles/month × ${dscRates.insightsPerProfile} insights/profile × ${dscRates.insights} DSC ÷ 1,000 = ${formatNumber(costs.calculatedInsights)} DSC`;
+          costs.storageCalc = storageDetails.join(' + ');
         } else {
           // Option 2: SF → Workato → Snowflake → DC
           costs.ingestion = 0;
@@ -1715,6 +1745,9 @@
           costs.calculatedInsights = 0;
           costs.storage = 0;
 
+          let companionDetails = [];
+          let storageDetails = [];
+
           // Companion Org Sync
           const totalProfilesToSync = objects
             .filter((obj) => obj.pushToSF)
@@ -1722,17 +1755,31 @@
           costs.companionSync =
             (totalProfilesToSync / 1000) * dscRates.batch.companion * 30;
 
+          objects.filter((obj) => obj.pushToSF).forEach((obj) => {
+            const companionCost = (obj.volume / 1000) * dscRates.batch.companion * 30;
+            companionDetails.push(`${obj.name}: ${obj.volume.toLocaleString()} records ÷ 1,000 × ${dscRates.batch.companion} DSC × 30 days = ${formatNumber(companionCost)} DSC`);
+          });
+
           // Storage
           objects.forEach((obj) => {
-            costs.storage += calculateStorageDSC(obj.volume);
+            const storageCost = calculateStorageDSC(obj.volume);
+            costs.storage += storageCost;
+            const sizeGB = (obj.volume * dscRates.recordSize) / 1024 / 1024;
+            storageDetails.push(`${obj.name}: ${obj.volume.toLocaleString()} records × ${dscRates.recordSize} KB = ${sizeGB.toFixed(2)} GB × ${dscRates.storage} DSC/GB = ${formatNumber(storageCost)} DSC/month`);
           });
+
+          // Build calculation strings
+          costs.zeroCopyCalc = `${dscRates.zeroCopyQueriesPerMonth.toLocaleString()} queries/month ÷ 1,000 × ${dscRates.zeroCopyQueryRate} DSC (Data Federation: DC reading FROM Snowflake) = ${formatNumber(costs.zeroCopy)} DSC`;
+          costs.companionCalc = companionDetails.length > 0
+            ? companionDetails.join(' + ')
+            : 'No companion sync configured';
+          costs.storageCalc = storageDetails.join(' + ');
         }
 
-        // Total
-        const monthlyDSC = Object.values(costs).reduce(
-          (sum, cost) => sum + cost,
-          0,
-        );
+        // Total (exclude calculation strings)
+        const monthlyDSC = Object.keys(costs)
+          .filter(key => !key.endsWith('Calc'))
+          .reduce((sum, key) => sum + costs[key], 0);
         const annualDSC = monthlyDSC * 12;
         const percent = (annualDSC / totalDSCAllocation) * 100;
 
@@ -1743,7 +1790,7 @@
         document.getElementById(`annual${suffix}`).textContent =
           formatNumber(annualDSC);
         document.getElementById(`percent${suffix}`).textContent =
-          percent.toFixed(1) + "%";
+          percent.toFixed(2) + "%";
         document.getElementById(`storage${suffix}`).textContent =
           formatNumber(costs.storage);
 
@@ -1771,62 +1818,84 @@
                 {
                   label: "SF Object Ingestion",
                   value: costs.ingestion,
+                  calculation: costs.ingestionCalc || "FREE - Batch mode from SF orgs",
                   color: "blue",
                 },
                 {
                   label: "Identity Resolution",
                   value: costs.identityResolution,
+                  calculation: costs.identityCalc || "",
                   color: "green",
                 },
                 {
                   label: "Output to Snowflake",
                   value: costs.snowflakeOutput,
+                  calculation: costs.outputCalc || "",
                   color: "orange",
                 },
                 {
                   label: "Companion Org Sync",
                   value: costs.companionSync,
+                  calculation: costs.companionCalc || "",
                   color: "purple",
                 },
                 {
                   label: "Calculated Insights",
                   value: costs.calculatedInsights,
+                  calculation: costs.insightsCalc || "",
                   color: "pink",
                 },
                 {
                   label: "Data Storage",
                   value: costs.storage,
+                  calculation: costs.storageCalc || "",
                   color: "yellow",
                 },
               ]
             : [
                 {
-                  label: "Zero-Copy Queries",
+                  label: "Data Federation (Zero-Copy)",
                   value: costs.zeroCopy,
+                  calculation: costs.zeroCopyCalc || "",
                   color: "blue",
                 },
                 {
                   label: "Companion Org Sync",
                   value: costs.companionSync,
+                  calculation: costs.companionCalc || "",
                   color: "purple",
                 },
                 {
                   label: "Data Storage",
                   value: costs.storage,
+                  calculation: costs.storageCalc || "",
                   color: "yellow",
                 },
               ];
 
         components.forEach((comp) => {
           const percent = total > 0 ? (comp.value / total) * 100 : 0;
+          const annual = comp.value * 12;
           const item = document.createElement("div");
           item.className =
-            "flex justify-between items-center p-3 bg-gray-50 rounded";
+            "p-4 bg-gradient-to-r from-gray-50 to-white rounded-lg border border-gray-200 hover:shadow-md transition";
           item.innerHTML = `
-                    <span class="text-sm text-gray-700">${comp.label}</span>
-                    <div class="text-right">
-                        <div class="text-sm font-semibold text-gray-900">${formatNumber(comp.value)}</div>
-                        <div class="text-xs text-gray-500">${percent.toFixed(1)}%</div>
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-sm font-semibold text-gray-800">${comp.label}</span>
+                        <span class="text-xs bg-${comp.color}-100 text-${comp.color}-700 px-2 py-1 rounded">${percent.toFixed(2)}%</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <div>
+                            <div class="text-xs text-gray-500">Monthly DSC</div>
+                            <div class="text-base font-bold text-gray-900">${formatNumber(comp.value)}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-500">Annual DSC</div>
+                            <div class="text-base font-bold text-gray-900">${formatNumber(annual)}</div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-gray-600 bg-white p-2 rounded border border-gray-100">
+                        <span class="font-semibold">Calculation:</span> ${comp.calculation}
                     </div>
                 `;
           container.appendChild(item);
@@ -1985,9 +2054,9 @@
 
         // Update comparison table
         document.getElementById("comp-dsc-1").innerHTML =
-          `<span class="font-bold text-blue-600">${formatNumber(scenarios.option1.annualDSC || 0)} DSC</span> (${(((scenarios.option1.annualDSC || 0) / totalDSCAllocation) * 100).toFixed(1)}%)`;
+          `<span class="font-bold text-blue-600">${formatNumber(scenarios.option1.annualDSC || 0)} DSC</span> (${(((scenarios.option1.annualDSC || 0) / totalDSCAllocation) * 100).toFixed(2)}%)`;
         document.getElementById("comp-dsc-2").innerHTML =
-          `<span class="font-bold text-purple-600">${formatNumber(scenarios.option2.annualDSC || 0)} DSC</span> (${(((scenarios.option2.annualDSC || 0) / totalDSCAllocation) * 100).toFixed(1)}%)`;
+          `<span class="font-bold text-purple-600">${formatNumber(scenarios.option2.annualDSC || 0)} DSC</span> (${(((scenarios.option2.annualDSC || 0) / totalDSCAllocation) * 100).toFixed(2)}%)`;
 
         // Update recommendation
         updateRecommendation();
@@ -2007,14 +2076,14 @@
           html = `
                     <div class="mb-4">
                         <div class="text-2xl font-bold text-blue-600 mb-2">✅ Recommended: Option 1 (SF → Data Cloud → Snowflake)</div>
-                        <p class="text-lg mb-4">Option 1 saves <strong>${formatNumber(savings)} DSC/year (${savingsPercent.toFixed(1)}%)</strong> compared to Option 2.</p>
+                        <p class="text-lg mb-4">Option 1 saves <strong>${formatNumber(savings)} DSC/year (${savingsPercent.toFixed(2)}%)</strong> compared to Option 2.</p>
                     </div>
                 `;
         } else {
           html = `
                     <div class="mb-4">
                         <div class="text-2xl font-bold text-purple-600 mb-2">✅ Recommended: Option 2 (SF → Workato → Snowflake → DC)</div>
-                        <p class="text-lg mb-4">Option 2 saves <strong>${formatNumber(savings)} DSC/year (${savingsPercent.toFixed(1)}%)</strong> compared to Option 1.</p>
+                        <p class="text-lg mb-4">Option 2 saves <strong>${formatNumber(savings)} DSC/year (${savingsPercent.toFixed(2)}%)</strong> compared to Option 1.</p>
                     </div>
                 `;
         }
@@ -2166,7 +2235,7 @@
             lastYear.annualDSC,
           );
           document.getElementById("year5Percent").textContent =
-            lastYear.percent.toFixed(1) + "%";
+            lastYear.percent.toFixed(2) + "%";
 
           const cumulative = projections[0].data.reduce(
             (sum, year) => sum + year.annualDSC,
@@ -2194,7 +2263,7 @@
                     <td class="px-4 py-3 text-right text-gray-700">${formatNumber(yearData.dailyChanges)}</td>
                     <td class="px-4 py-3 text-right text-gray-700">${formatNumber(yearData.storage)}</td>
                     <td class="px-4 py-3 text-right font-semibold text-gray-900">${formatNumber(yearData.annualDSC)}</td>
-                    <td class="px-4 py-3 text-right ${yearData.percent > 100 ? "text-red-600 font-bold" : "text-gray-700"}">${yearData.percent.toFixed(1)}%</td>
+                    <td class="px-4 py-3 text-right ${yearData.percent > 100 ? "text-red-600 font-bold" : "text-gray-700"}">${yearData.percent.toFixed(2)}%</td>
                 `;
           tbody.appendChild(row);
         });
